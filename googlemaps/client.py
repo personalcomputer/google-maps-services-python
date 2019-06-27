@@ -68,7 +68,6 @@ class Client(object):
         :param channel: (for Maps API for Work customers) When set, a channel
             parameter with this value will be added to the requests.
             This can be used for tracking purpose.
-            Can only be used with a Maps API client ID.
         :type channel: str
 
         :param timeout: Combined connect and read timeout for HTTP requests, in
@@ -118,14 +117,10 @@ class Client(object):
         if key and not key.startswith("AIza"):
             raise ValueError("Invalid API key provided.")
 
-        if channel:
-            if not client_id:
-                raise ValueError("The channel argument must be used with a "
-                                 "client ID")
-            if not re.match("^[a-zA-Z0-9._-]*$", channel):
-                raise ValueError("The channel argument must be an ASCII "
-                    "alphanumeric string. The period (.), underscore (_)"
-                    "and hyphen (-) characters are allowed.")
+        if channel and not re.match("^[a-zA-Z0-9._-]*$", channel):
+            raise ValueError("The channel argument must be an ASCII "
+                "alphanumeric string. The period (.), underscore (_)"
+                "and hyphen (-) characters are allowed.")
 
         self.session = requests.Session()
         self.key = key
@@ -311,10 +306,11 @@ class Client(object):
             params = sorted(dict(extra_params, **params).items())
         else:
             params = sorted(extra_params.items()) + params[:] # Take a copy.
+            
+        if self.channel:
+            params.append(("channel", self.channel)
 
-        if accepts_clientid and self.client_id and self.client_secret:
-            if self.channel:
-                params.append(("channel", self.channel))
+        if accepts_clientid and self.client_id and self.client_secret:)
             params.append(("client", self.client_id))
 
             path = "?".join([path, urlencode_params(params)])
